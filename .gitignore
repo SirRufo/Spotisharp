@@ -1,6 +1,10 @@
 .vs/
 .vscode/
-bin/
-obj/
+[Bb]in/
+[Oo]bj/
 Properties/
-Spotisharp.Client.csproj.user
+*.user
+
+.DS_Store
+log/
+pub/

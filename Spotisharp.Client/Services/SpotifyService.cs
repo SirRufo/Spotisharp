@@ -93,8 +93,10 @@ public static class SpotifyService
         FullPlaylist playlist = await client.Playlists.Get(input);
         if (playlist.Tracks != null)
         {
+            int playlistTrack = 0;
             await foreach(var item in client.Paginate(playlist.Tracks))
             {
+                
                 if (item.Track is FullTrack track && !string.IsNullOrEmpty(track.Album?.Id))
                 {
                     FullAlbum album = await client.Albums.TryGet(track.Album.Id);
@@ -105,6 +107,7 @@ public static class SpotifyService
                         Title = track.Name,
                         Url = track.ExternalUrls["spotify"],
                         Playlist = playlist.Name ?? string.Empty,
+                        PlaylistTrack = ++playlistTrack,
                         DiscNumber = track.DiscNumber,
                         TrackNumber = track.TrackNumber,
                         Album = album.Name,

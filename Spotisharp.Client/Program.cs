@@ -70,6 +70,7 @@ if(input == string.Empty)
 CConsole.WriteLine("Input: " + input, CConsoleType.Debug);
 
 CConsole.WriteLine("Logging to Spotify");
+SpotifyAuthentication.Port = ConfigManager.Properties.Port;
 SpotifyClient? client = await SpotifyAuthentication.CreateSpotifyClient();
 
 if (client == null) 
@@ -113,6 +114,7 @@ switch (category)
 }
 
 int workersCount = ConfigManager.Properties.WorkersCount;
+int trackCount = trackInfoBag.Count;
 
 if(workersCount < 1 || workersCount > 4)
 {
@@ -269,27 +271,62 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
             continue;
         }
 
-        using (TagLib.File file = TagLib.File.Create(convertedFilePath))
+        if (category == SpotifyBrowseCategory.Playlist)
         {
-            TagLib.Id3v2.Tag.DefaultVersion = 3;
-            TagLib.Id3v2.Tag.ForceDefaultVersion = true;
-            file.Tag.Performers = new string[] { trackInfo.Artist };
-            file.Tag.AlbumArtists = new string[] { trackInfo.Artist };
-            file.Tag.Composers = new string[] { trackInfo.Artist };
-            file.Tag.Copyright = trackInfo.Copyright;
-            file.Tag.Lyrics = await lyricsTask;
-            file.Tag.Title = trackInfo.Title;
-            file.Tag.Album = trackInfo.Album;
-            file.Tag.Track = Convert.ToUInt32(trackInfo.TrackNumber);
-            file.Tag.Disc = Convert.ToUInt32(trackInfo.DiscNumber);
-            file.Tag.Year = Convert.ToUInt32(trackInfo.Year);
-            file.Tag.Comment = trackInfo.Url;
-            file.Tag.Genres = new string[] { trackInfo.Genres };
-            file.Tag.Pictures = new TagLib.Picture[]
+            using (TagLib.File file = TagLib.File.Create(convertedFilePath))
+            {                
+                TagLib.Id3v2.Tag.DefaultVersion = 3;
+                TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+
+                var tag = file.GetTag(TagLib.TagTypes.Id3v2, true) as TagLib.Id3v2.Tag;
+                if (tag is not null)
+                    tag.IsCompilation = true;
+                
+                file.Tag.Performers = new string[] { trackInfo.Artist };
+                //file.Tag.AlbumArtists = new string[] { trackInfo.Artist };
+                file.Tag.Composers = new string[] { trackInfo.Artist };
+                file.Tag.Copyright = trackInfo.Copyright;
+                file.Tag.Lyrics = await lyricsTask;
+                file.Tag.Title = trackInfo.Title;
+                file.Tag.Album = trackInfo.Playlist;
+                file.Tag.Track = Convert.ToUInt32( trackInfo.PlaylistTrack.HasValue ? trackInfo.PlaylistTrack.Value : 0 );
+                file.Tag.TrackCount = Convert.ToUInt32( trackCount );
+                //file.Tag.Track = Convert.ToUInt32(trackInfo.TrackNumber);
+                //file.Tag.Disc = Convert.ToUInt32(trackInfo.DiscNumber);
+                file.Tag.Year = Convert.ToUInt32(trackInfo.Year);
+                file.Tag.Comment = trackInfo.Url;
+                file.Tag.Genres = new string[] { trackInfo.Genres };
+                file.Tag.Pictures = new TagLib.Picture[]
+                {
+                    new TagLib.Picture(await albumPictureTask)
+                };
+                file.Save();
+            }
+        }
+        else
+        {
+            using (TagLib.File file = TagLib.File.Create(convertedFilePath))
             {
-                new TagLib.Picture(await albumPictureTask)
-            };
-            file.Save();
+                TagLib.Id3v2.Tag.DefaultVersion = 3;
+                TagLib.Id3v2.Tag.ForceDefaultVersion = true;
+                file.Tag.Performers = new string[] { trackInfo.Artist };
+                file.Tag.AlbumArtists = new string[] { trackInfo.Artist };
+                file.Tag.Composers = new string[] { trackInfo.Artist };
+                file.Tag.Copyright = trackInfo.Copyright;
+                file.Tag.Lyrics = await lyricsTask;
+                file.Tag.Title = trackInfo.Title;
+                file.Tag.Album = trackInfo.Album;
+                file.Tag.Track = Convert.ToUInt32(trackInfo.TrackNumber);
+                file.Tag.Disc = Convert.ToUInt32(trackInfo.DiscNumber);
+                file.Tag.Year = Convert.ToUInt32(trackInfo.Year);
+                file.Tag.Comment = trackInfo.Url;
+                file.Tag.Genres = new string[] { trackInfo.Genres };
+                file.Tag.Pictures = new TagLib.Picture[]
+                {
+                    new TagLib.Picture(await albumPictureTask)
+                };
+                file.Save();
+            }
         }
 
         CConsole.WriteLine($"W #{workerId} ::: Finished current task ::: {fullName}", CConsoleType.Debug);

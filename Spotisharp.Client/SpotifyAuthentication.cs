@@ -7,7 +7,7 @@ using System.Text.Json;
 
 public static class SpotifyAuthentication
 {
-
+    public static UInt16 Port { get; set; } = 5001;
     private static PKCETokenModel _pkceTokenModel = new PKCETokenModel();
     
     private static string _tokenConfigDir =
@@ -21,7 +21,7 @@ public static class SpotifyAuthentication
 
     public static async Task<SpotifyClient?> CreateSpotifyClient()
     {
-        string clientId = "b1d70eb4c56440f5b56537e96e079c7d";
+        string clientId = "45c584c516f8401ea9811209beaa76c8";
 
         if (File.Exists(_tokenConfigFile))
         {
@@ -46,7 +46,7 @@ public static class SpotifyAuthentication
 
         var (verifier, challenge) = PKCEUtil.GenerateCodes(120);
 
-        Uri serverUri = new Uri("http://localhost:5000/auth");
+        Uri serverUri = new Uri($"http://localhost:{Port}/auth");
         var loginRequest = new LoginRequest(serverUri, clientId, LoginRequest.ResponseType.Code)
         {
             CodeChallenge = challenge,
@@ -86,7 +86,7 @@ public static class SpotifyAuthentication
     }
     private static async Task<string> GetCallbackFromServer(Uri redirectUri, string clientID)
     {
-        var embededAuthServer = new EmbedIOAuthServer(redirectUri, 5000);
+        var embededAuthServer = new EmbedIOAuthServer(redirectUri, Port);
         await embededAuthServer.Start();
         string authorizationCode = string.Empty;
 
