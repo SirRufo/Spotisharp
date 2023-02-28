@@ -131,6 +131,8 @@ CConsole.WriteLine("Press CTRL-C to abort", writeToFile: false);
 
 int topCursorPosition = Console.CursorTop - workersCount - 1;
 
+var useDiscNumber = trackInfoBag.Any(e => e.DiscNumber>1);
+
 await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
 {
     int positionY = topCursorPosition + workerId;
@@ -138,7 +140,9 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
     {
         string safeArtistName = FilenameResolver.RemoveForbiddenChars(trackInfo.Artist, StringType.Filename);
         string safeTitle = FilenameResolver.RemoveForbiddenChars(trackInfo.Title, StringType.Filename);
-        string fullName = safeArtistName + " - " + safeTitle;
+        string fullName = useDiscNumber 
+            ? $"{trackInfo.DiscNumber}-{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}"
+            : $"{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}";
 
         DirectoryInfo trackDir = Directory.CreateDirectory
                 (
