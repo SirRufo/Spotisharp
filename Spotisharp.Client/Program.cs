@@ -140,9 +140,21 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
     {
         string safeArtistName = FilenameResolver.RemoveForbiddenChars(trackInfo.Artist, StringType.Filename);
         string safeTitle = FilenameResolver.RemoveForbiddenChars(trackInfo.Title, StringType.Filename);
-        string fullName = useDiscNumber 
-            ? $"{trackInfo.DiscNumber}-{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}"
-            : $"{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}";
+
+        string fullName;
+
+        switch (category)
+        {
+            case SpotifyBrowseCategory.Album:
+            case SpotifyBrowseCategory.Playlist:
+                fullName = useDiscNumber 
+                    ? $"{trackInfo.DiscNumber}-{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}"
+                    : $"{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}";
+                break;
+            default:
+                fullName = $"{safeArtistName} - {safeTitle}";
+                break;
+        }
 
         DirectoryInfo trackDir = Directory.CreateDirectory
                 (
