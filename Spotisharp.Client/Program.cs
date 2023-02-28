@@ -19,6 +19,7 @@ if (!ConfigManager.Init())
     return;
 }
 
+#if CHECK_UPDATES
 if (ConfigManager.Properties.CheckUpdates)
 {
     CConsole.WriteLine("Checking for updates");
@@ -39,6 +40,7 @@ if (ConfigManager.Properties.CheckUpdates)
         CConsole.WriteLine("No updates available");
     }
 }
+#endif
 
 
 ConfigManager.Properties.EnsureDirsExist();
