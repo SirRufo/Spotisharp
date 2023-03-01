@@ -115,13 +115,15 @@ switch (category)
         break;
 }
 
+const int maxWorkers = 8;
+
 int workersCount = ConfigManager.Properties.WorkersCount;
 int trackCount = trackInfoBag.Count;
 
-if(workersCount < 1 || workersCount > 4)
+if(workersCount < 1 || workersCount > maxWorkers)
 {
-    CConsole.WriteLine("WorkersCount has to be set in range of 1-4. Changing to 4", CConsoleType.Warn);
-    workersCount = 4;
+    CConsole.WriteLine($"WorkersCount has to be set in range of 1-{maxWorkers}. Changing to {maxWorkers}", CConsoleType.Warn);
+    workersCount = maxWorkers;
 }
 
 for (int i = 0; i < workersCount; i++)
