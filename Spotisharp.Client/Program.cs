@@ -148,10 +148,12 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
         switch (category)
         {
             case SpotifyBrowseCategory.Album:
-            case SpotifyBrowseCategory.Playlist:
                 fullName = useDiscNumber 
                     ? $"{trackInfo.DiscNumber}-{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}"
                     : $"{trackInfo.TrackNumber:00} {safeArtistName} - {safeTitle}";
+                break;
+            case SpotifyBrowseCategory.Playlist:
+                fullName = $"{trackInfo.PlaylistTrack:00} {safeArtistName} - {safeTitle}";
                 break;
             default:
                 fullName = $"{safeArtistName} - {safeTitle}";
