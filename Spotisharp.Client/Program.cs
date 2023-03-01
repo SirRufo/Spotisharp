@@ -252,44 +252,50 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
 
         using (audioStream)
         {
-            await FFmpegService.ConvertStreamAsync(audioStream, convertedFilePath,
-                new Progress<Tuple<TimeSpan, TimeSpan>>
-                (
-                    pValues => 
-                    {
-                        int duration = (int)pValues.Item2.TotalSeconds;
-                        int position = (int)pValues.Item1.TotalSeconds;
-                        int percentage = 0;
-
-                        if(duration > 0)
+            int downCounter = 3;
+            while (downCounter > 0 && !File.Exists(convertedFilePath))
+            {
+                downCounter--;
+                audioStream.Seek(0,SeekOrigin.Begin);
+                await FFmpegService.ConvertStreamAsync(audioStream, convertedFilePath,
+                    new Progress<Tuple<TimeSpan, TimeSpan>>
+                    (
+                        pValues => 
                         {
-                            percentage = (int)Math.Ceiling(100.0 * position / duration);
+                            int duration = (int)pValues.Item2.TotalSeconds;
+                            int position = (int)pValues.Item1.TotalSeconds;
+                            int percentage = 0;
 
-                            CConsole.Overwrite
-                            (
-                                string.Format
+                            if(duration > 0)
+                            {
+                                percentage = (int)Math.Ceiling(100.0 * position / duration);
+
+                                CConsole.Overwrite
                                 (
-                                    "W #{0} ::: {1}{2} C: {3}% Q:{4} ::: {5}",
-                                    workerId,
-                                    new string('█', (int)(percentage / 5)),
-                                    new string('▓', 20 - (int)(percentage / 5)),
-                                    percentage.ToString("D3"),
-                                    trackInfoBag.Count.ToString("D3"),
-                                    fullName
-                                ),
-                                positionY,
-                                writeToFile: false
-                            );
+                                    string.Format
+                                    (
+                                        "W #{0} ::: {1}{2} C: {3}% Q:{4} ::: {5}",
+                                        workerId,
+                                        new string('█', (int)(percentage / 5)),
+                                        new string('▓', 20 - (int)(percentage / 5)),
+                                        percentage.ToString("D3"),
+                                        trackInfoBag.Count.ToString("D3"),
+                                        fullName
+                                    ),
+                                    positionY,
+                                    writeToFile: false
+                                );
+                            }
                         }
-                    }
-                )
-            );
+                    )
+                );
+            }
         }
 
         CConsole.WriteLine($"W #{workerId} ::: Adding metadata ::: {fullName}", CConsoleType.Debug);
         if (!File.Exists(convertedFilePath))
         {
-            CConsole.WriteLine($"W #{workerId} ::: Not Exist In Folder ::: {fullName}", CConsoleType.Debug);
+            CConsole.WriteLine($"W #{workerId} ::: Not Exist In Folder ::: {fullName}", CConsoleType.Warn);
             continue;
         }
 
