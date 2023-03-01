@@ -216,7 +216,7 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
             continue;
         }
 
-        CConsole.WriteLine($"W #{workerId} ::: Downloading ::: {fullName}", CConsoleType.Debug);
+        CConsole.WriteLine($"W #{workerId} ::: Downloading ::: {fullName} => {audioTrack.Uri}", CConsoleType.Debug);
 
         Task<byte[]> albumPictureTask = Task.Run(async () =>
         {
