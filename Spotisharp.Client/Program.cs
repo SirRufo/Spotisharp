@@ -145,6 +145,8 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
         string safeArtistName = FilenameResolver.RemoveForbiddenChars(trackInfo.Artist, StringType.Filename);
         string safeTitle = FilenameResolver.RemoveForbiddenChars(trackInfo.Title, StringType.Filename);
 
+        string trackName = $"{trackInfo.Artist} - {trackInfo.Album} - {trackInfo.Title}";
+
         string fullName;
 
         switch (category)
@@ -182,10 +184,10 @@ await Task.WhenAll(Enumerable.Range(0, workersCount).Select(async workerId =>
 
         CConsole.WriteLine($"W #{workerId} ::: Getting Lyrics ::: {fullName}", CConsoleType.Debug);
         Task<string> lyricsTask = 
-            MusixmatchService.SearchLyricsFromText(fullName);
+            MusixmatchService.SearchLyricsFromText(trackName);
 
         CConsole.WriteLine($"W #{workerId} ::: Getting youtube links ::: {fullName}", CConsoleType.Debug);
-        string[] results = await YoutubeService.SearchByText(fullName, 3);
+        string[] results = await YoutubeService.SearchByText(trackName, 3);
 
         YouTubeVideo? audioTrack = null;
 
